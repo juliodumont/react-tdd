@@ -7,6 +7,7 @@ import { Employee } from 'types/employee';
 import { useEffect, useState } from 'react';
 import { AxiosRequestConfig } from 'axios';
 import { requestBackend } from 'util/requests';
+import { toast } from 'react-toastify';
 
 
 const Form = () => {
@@ -24,8 +25,24 @@ const Form = () => {
   };
 
   const onSubmit = (EmployeeData: Employee) => {
-    console.log(EmployeeData);
-    //history.push('/admin/employees')
+    const data = {
+      name: EmployeeData.name,
+      email: EmployeeData.email,
+      department: { id: EmployeeData.department.id }
+    }
+
+    const config: AxiosRequestConfig = {
+      method: 'POST',
+      url: '/employees',
+      data,
+      withCredentials: true
+    }
+    requestBackend(config).then(() => {
+      toast.info('Cadastrado com sucesso');
+      history.push('/admin/employees')
+    }).catch(() => {
+      toast.error('Erro ao cadastrar');
+    })
   };
 
   useEffect(() => {
@@ -49,6 +66,7 @@ const Form = () => {
                   {...register('name', {
                     required: 'Campo obrigatório',
                   })}
+                  data-testid='name'
                   className={`form-control base-input ${!errors.name ? '' : 'is-invalid'}`}
                 />
                 <div className="invalid-feedback d-block">
@@ -66,6 +84,7 @@ const Form = () => {
                       message: 'Email inválido'
                     }
                   })}
+                  data-testid='email'
                   className={`form-control base-input ${!errors.email ? '' : 'is-invalid'}`}
                 />
                 <div className="invalid-feedback d-block">
@@ -74,6 +93,7 @@ const Form = () => {
               </div>
 
               <div className="margin-bottom-30 ">
+              <label htmlFor="department" className='d-name'>Departamento</label>
                 <Controller
                   name="department"
                   rules={{ required: true }}
@@ -89,6 +109,7 @@ const Form = () => {
                       getOptionValue={(department: Department) =>
                         String(department.id)
                       }
+                      inputId="department"
                     />
                   )}
                 />
