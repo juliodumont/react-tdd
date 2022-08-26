@@ -1,28 +1,38 @@
 import history from 'util/history';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
+import Select from 'react-select';
 import './styles.css';
+import { Department } from 'types/department';
+import { Employee } from 'types/employee';
+import { useEffect, useState } from 'react';
+import { AxiosRequestConfig } from 'axios';
+import { requestBackend } from 'util/requests';
 
-
-type EmployeeInfo = {
-  name: string;
-  email: string;
-}
 
 const Form = () => {
+  const [selectDepartments, setSelectDepartments] = useState<Department[]>([]);
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors }
-  } = useForm<EmployeeInfo>();
+  } = useForm<Employee>();
 
   const handleCancel = () => {
     history.push('/admin/employees')
   };
 
-  const onSubmit = (EmployeeData: EmployeeInfo) => {
+  const onSubmit = (EmployeeData: Employee) => {
     console.log(EmployeeData);
+    //history.push('/admin/employees')
   };
+
+  useEffect(() => {
+    requestBackend({ url: '/departments', withCredentials: true }).then((response) => {
+      setSelectDepartments(response.data)
+    })
+  }, [])
 
   return (
     <div className="employee-crud-container">
@@ -35,6 +45,7 @@ const Form = () => {
 
               <div className="margin-bottom-30">
                 <input type="text"
+                  placeholder='Nome do funcionário'
                   {...register('name', {
                     required: 'Campo obrigatório',
                   })}
@@ -47,6 +58,7 @@ const Form = () => {
 
               <div className="margin-bottom-30">
                 <input type="text"
+                  placeholder='Email do funcionário'
                   {...register('email', {
                     required: 'Campo obrigatório',
                     pattern: {
@@ -61,6 +73,31 @@ const Form = () => {
                 </div>
               </div>
 
+              <div className="margin-bottom-30 ">
+                <Controller
+                  name="department"
+                  rules={{ required: true }}
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      placeholder='Departamento'
+                      {...field}
+                      options={selectDepartments}
+                      classNamePrefix="employee-crud-select"
+                      isMulti
+                      getOptionLabel={(department: Department) => department.name}
+                      getOptionValue={(department: Department) =>
+                        String(department.id)
+                      }
+                    />
+                  )}
+                />
+                {errors.department && (
+                  <div className="invalid-feedback d-block">
+                    Campo obrigatório
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="employee-crud-buttons-container">
